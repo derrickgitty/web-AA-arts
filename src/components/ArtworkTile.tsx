@@ -20,6 +20,11 @@ export default function ArtworkTile({ id, title, fileUrl, thumbUrl, kind, canDel
   const [rotate, setRotate] = useState(0);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const touchRef = useRef<
+    | { kind: "pan"; x: number; y: number; px: number; py: number }
+    | { kind: "pinch"; dist: number; baseZoom: number }
+    | null
+  >(null);
   const router = useRouter();
 
   // Reset transform whenever the lightbox opens.
@@ -53,6 +58,31 @@ export default function ArtworkTile({ id, title, fileUrl, thumbUrl, kind, canDel
     setPan({ x: dragRef.current.px + dx, y: dragRef.current.py + dy });
   }
   function onMouseUp() { dragRef.current = null; }
+
+  function touchDist(t1: React.Touch, t2: React.Touch) {
+    return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+  }
+  function onTouchStart(e: React.TouchEvent) {
+    if (e.touches.length === 2) {
+      touchRef.current = { kind: "pinch", dist: touchDist(e.touches[0], e.touches[1]), baseZoom: zoom };
+    } else if (e.touches.length === 1) {
+      touchRef.current = { kind: "pan", x: e.touches[0].clientX, y: e.touches[0].clientY, px: pan.x, py: pan.y };
+    }
+  }
+  function onTouchMove(e: React.TouchEvent) {
+    const t = touchRef.current;
+    if (!t) return;
+    if (t.kind === "pinch" && e.touches.length === 2) {
+      const d = touchDist(e.touches[0], e.touches[1]);
+      const ratio = d / (t.dist || 1);
+      setZoom(Math.min(5, Math.max(0.5, t.baseZoom * ratio)));
+    } else if (t.kind === "pan" && e.touches.length === 1) {
+      const dx = e.touches[0].clientX - t.x;
+      const dy = e.touches[0].clientY - t.y;
+      setPan({ x: t.px + dx, y: t.py + dy });
+    }
+  }
+  function onTouchEnd() { touchRef.current = null; }
 
   return (
     <>
@@ -98,29 +128,33 @@ export default function ArtworkTile({ id, title, fileUrl, thumbUrl, kind, canDel
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 select-none"
         >
           <div onClick={(e) => e.stopPropagation()} className="relative w-full h-full flex flex-col">
-            <div className="flex items-center justify-between gap-4 px-4 py-3 text-white">
-              <div className="font-display text-lg truncate">{title || (kind === "pdf" ? "Document" : "Artwork")}</div>
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-4 py-3 text-white flex-wrap">
+              <div className="font-display text-base sm:text-lg truncate min-w-0 flex-1">{title || (kind === "pdf" ? "Document" : "Artwork")}</div>
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 {kind === "image" && (
                   <>
-                    <button onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))} className="bg-white/20 hover:bg-white/30 rounded-full w-10 h-10" title="Zoom out">−</button>
-                    <span className="text-sm w-14 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
-                    <button onClick={() => setZoom((z) => Math.min(5, z + 0.25))} className="bg-white/20 hover:bg-white/30 rounded-full w-10 h-10" title="Zoom in">+</button>
-                    <button onClick={() => setRotate((r) => (r + 90) % 360)} className="bg-white/20 hover:bg-white/30 rounded-full w-10 h-10" title="Rotate">↻</button>
-                    <button onClick={() => { setZoom(1); setRotate(0); setPan({ x: 0, y: 0 }); }} className="bg-white/20 hover:bg-white/30 rounded-full px-3 h-10 text-sm" title="Reset">Reset</button>
+                    <button onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" title="Zoom out">−</button>
+                    <span className="text-xs sm:text-sm w-12 sm:w-14 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
+                    <button onClick={() => setZoom((z) => Math.min(5, z + 0.25))} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" title="Zoom in">+</button>
+                    <button onClick={() => setRotate((r) => (r + 90) % 360)} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" title="Rotate">↻</button>
+                    <button onClick={() => { setZoom(1); setRotate(0); setPan({ x: 0, y: 0 }); }} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-auto sm:px-3 sm:h-10 text-xs sm:text-sm" title="Reset">↺</button>
                   </>
                 )}
-                <button onClick={() => setOpen(false)} className="bg-white/20 hover:bg-white/30 rounded-full w-10 h-10" title="Close">✕</button>
+                <button onClick={() => setOpen(false)} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" title="Close">✕</button>
               </div>
             </div>
 
             <div
-              className="flex-1 overflow-hidden flex items-center justify-center"
+              className="flex-1 overflow-hidden flex items-center justify-center touch-none"
               onWheel={kind === "image" ? onWheel : undefined}
               onMouseDown={kind === "image" ? onMouseDown : undefined}
               onMouseMove={kind === "image" ? onMouseMove : undefined}
               onMouseUp={onMouseUp}
               onMouseLeave={onMouseUp}
+              onTouchStart={kind === "image" ? onTouchStart : undefined}
+              onTouchMove={kind === "image" ? onTouchMove : undefined}
+              onTouchEnd={kind === "image" ? onTouchEnd : undefined}
+              onTouchCancel={kind === "image" ? onTouchEnd : undefined}
               style={{ cursor: kind === "image" && zoom > 1 ? (dragRef.current ? "grabbing" : "grab") : "default" }}
             >
               {kind === "image" ? (

@@ -123,7 +123,7 @@ export default async function SharePage({
         {subs.length > 0 && (
           <section className="mb-10">
             <h2 className="font-display text-xl text-lilac-500 mb-3">Sub-galleries</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
               {subs.map((s) => (
                 <Link key={s.id} href={`/share/${token}?g=${s.id}`} className="card overflow-hidden hover:shadow-lg transition-shadow group block">
                   <div className="aspect-[4/3] bg-gradient-to-br from-blush-100 via-lilac-100 to-mint-100">
@@ -151,7 +151,7 @@ export default async function SharePage({
               <p className="text-gray-500">No art here yet.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
               {artworks.map((a) => (
                 <ArtworkTile
                   key={a.id}

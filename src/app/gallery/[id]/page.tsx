@@ -135,7 +135,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ id: st
         {subs.length > 0 && (
           <section className="mt-8">
             <h2 className="font-display text-xl text-lilac-500 mb-3">Sub-galleries</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
               {subs.map((s) => (
                 <GalleryCard
                   key={s.id}
@@ -157,7 +157,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ id: st
               <p className="text-gray-500">{owned ? "No art yet — upload your first piece!" : "No art here yet."}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
               {artworks.map((a) => (
                 <ArtworkTile
                   key={a.id}

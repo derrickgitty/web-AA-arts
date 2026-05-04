@@ -42,7 +42,7 @@ export default async function ExplorePage() {
             <p className="text-gray-500">No other galleries to peek at yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {galleries.map((g) => (
               <Link key={g.id} href={`/gallery/${g.id}`} className="card overflow-hidden hover:shadow-lg transition-shadow group block">
                 <div className="aspect-[4/3] bg-gradient-to-br from-blush-100 via-lilac-100 to-mint-100">
