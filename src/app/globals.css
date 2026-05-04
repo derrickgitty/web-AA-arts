@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    @apply bg-cream-100 text-gray-700 font-sans;
+  }
+  body {
+    background-image: radial-gradient(circle at 10% 0%, #FFE4ED 0%, transparent 40%),
+                      radial-gradient(circle at 90% 10%, #EFE6FF 0%, transparent 45%),
+                      radial-gradient(circle at 50% 100%, #DDFBEB 0%, transparent 40%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 bg-gradient-to-r from-blush-400 to-lilac-400 text-white font-bold px-5 py-3 rounded-2xl shadow-cute hover:scale-[1.03] active:scale-[0.98] transition-transform;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 bg-white border-2 border-lilac-200 text-lilac-500 font-semibold px-5 py-3 rounded-2xl hover:bg-lilac-50 transition-colors;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 text-lilac-500 font-semibold px-3 py-2 rounded-xl hover:bg-lilac-50 transition-colors;
+  }
+  .card {
+    @apply bg-white/80 backdrop-blur rounded-3xl shadow-cute border border-white;
+  }
+  .input {
+    @apply w-full rounded-2xl border-2 border-blush-100 bg-white px-4 py-3 outline-none focus:border-lilac-300 placeholder:text-gray-300;
+  }
+}
+
+.wiggle:hover { animation: wiggle 0.4s ease-in-out; }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-2deg); }
+  75% { transform: rotate(2deg); }
+}

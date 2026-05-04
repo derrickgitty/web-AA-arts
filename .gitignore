@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+dist
+.DS_Store
+*.log
+.env
+.env.local
+
+# Local data — do NOT commit kids' photos or DB
+data.db
+data.db-journal
+data.db-wal
+data.db-shm
+public/uploads/*
+!public/uploads/.gitkeep
