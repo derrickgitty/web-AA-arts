@@ -2,7 +2,7 @@
 
 All npm packages used by the art portal, with the version range declared in `package.json` and the exact version locked in `package-lock.json`. Update after any `npm install`/upgrade.
 
-_Last refreshed: 2026-05-04_
+_Last refreshed: 2026-05-04 (post Phase 2 — added vitest)_
 
 ## Runtime dependencies
 
@@ -31,6 +31,7 @@ _Last refreshed: 2026-05-04_
 | `@types/react-dom` | `^19.0.0` | `19.2.3` | React DOM type defs |
 | `@types/bcryptjs` | `^2.4.6` | `2.4.6` | bcryptjs type defs |
 | `@types/better-sqlite3` | `^7.6.12` | `7.6.13` | better-sqlite3 type defs |
+| `vitest` | `^3.2.4` | `3.2.4` | Test runner (unit + integration) |
 
 ## System / runtime requirements
 

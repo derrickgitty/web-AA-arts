@@ -2,7 +2,7 @@
 
 Refresh on commits that change source files.
 
-_Last refreshed: 2026-05-04_
+_Last refreshed: 2026-05-04 (post Phase 2 — tests added)_
 
 ## By directory
 
@@ -11,22 +11,24 @@ _Last refreshed: 2026-05-04_
 | `src/app/api/**` | 561 | 11 | Route handlers (login, upload, shares, admin, etc.) |
 | `src/app/**` (incl. api above) | 1,559 | 25 | All App Router pages + APIs |
 | `src/components/**` | 728 | 13 | Client + server React components |
-| `src/lib/**` | 235 | 3 | `db.ts`, `auth.ts`, `passwords.ts` |
+| `src/lib/**` | 246 | 4 | `db.ts`, `auth.ts`, `passwords.ts`, `svg.ts` |
 | `scripts/**` | 60 | 1 | `seed.ts` |
-| **Total source** | **2,582** | **41** | |
+| `tests/unit/**` | 80 | 2 | passwords, svg unit tests |
+| `tests/integration/**` | 301 | 4 | auth, upload, shares, admin integration tests |
+| `tests/helpers/**` | 209 | 2 | server spawn + cookie-jar fetch client |
+| **Total source + tests** | **3,184** | **51** | |
 
 ## By language
 
 | Language | Lines | Files |
 |---|---|---|
-| TypeScript (.ts) | 856 | 15 |
+| TypeScript (.ts) | 1,446 | 21 |
 | TSX (.tsx) | 1,726 | 27 |
 | CSS | 41 | 1 |
-| Markdown (root docs) | 282 | 4 (CLAUDE.md, todo.md, COMPONENTS.md, README.md) |
-| Config (package.json, tsconfig, next, tailwind, postcss) | 93 | 5 |
+| Markdown (root + docs) | ~600 | 6 (CLAUDE.md, todo.md, COMPONENTS.md, LOC.md, README.md, docs/test-cases.md, docs/test-log.md) |
+| Config (package.json, tsconfig, next, tailwind, postcss, vitest) | ~110 | 6 |
 
 ## Notes
 
-- Tests not yet counted — will be added once `tests/` lands.
-- `package-lock.json` and `next-env.d.ts` excluded.
-- `node_modules/` excluded.
+- `package-lock.json`, `next-env.d.ts`, and `node_modules/` excluded.
+- 590 LOC across `tests/` covers 34 cases (5 unit + 29 integration).

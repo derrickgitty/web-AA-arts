@@ -3,9 +3,9 @@ import path from "path";
 import fs from "fs/promises";
 import sharp from "sharp";
 import { nanoid } from "nanoid";
-import DOMPurify from "isomorphic-dompurify";
 import { getCurrentUser } from "@/lib/auth";
 import { getDb, GalleryRow, STORAGE_QUOTA_BYTES, UserRow } from "@/lib/db";
+import { sanitizeSvg } from "@/lib/svg";
 
 const MAX_BYTES = 20 * 1024 * 1024; // 20MB per file
 const RASTER_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif"]);
@@ -26,16 +26,6 @@ async function pdfThumbnail(): Promise<Buffer> {
     <text x='300' y='420' font-family='Quicksand, sans-serif' font-size='28' fill='#B894F0' text-anchor='middle'>document</text>
   </svg>`;
   return Buffer.from(svg);
-}
-
-function sanitizeSvg(input: string): string | null {
-  const cleaned = DOMPurify.sanitize(input, {
-    USE_PROFILES: { svg: true, svgFilters: true },
-    FORBID_TAGS: ["script", "foreignObject"],
-    FORBID_ATTR: ["onload", "onerror", "onclick", "onmouseover"],
-  });
-  if (!cleaned || !cleaned.includes("<svg")) return null;
-  return cleaned;
 }
 
 export async function POST(req: NextRequest) {

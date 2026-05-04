@@ -58,6 +58,15 @@ To reset everything: delete `data.db` and re-run `npm run seed`.
 - **Download mitigations**: right-click disabled, drag-save blocked, watermark on shared/non-owner views, PDFs embedded with toolbar hidden
   - ⚠️ Browsers can't truly prevent screenshots — these are layered soft mitigations
 
+## Tests
+
+```bash
+npm test          # one-shot
+npm run test:watch
+```
+
+Vitest 3 — 5 unit tests (password generator, SVG sanitiser) plus 29 integration tests that spawn a real Next dev server on port 3010 against an isolated `data.test.db`. Coverage details in `docs/test-cases.md`; latest run summary in `docs/test-log.md`.
+
 ## Production
 
 ```bash

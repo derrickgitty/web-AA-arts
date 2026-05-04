@@ -1,7 +1,10 @@
 import Database from "better-sqlite3";
 import path from "path";
 
-const dbPath = path.join(process.cwd(), "data.db");
+// Override-able for tests: set DATA_DB_PATH to point at an isolated file.
+const dbPath = process.env.DATA_DB_PATH
+  ? path.resolve(process.env.DATA_DB_PATH)
+  : path.join(process.cwd(), "data.db");
 
 declare global {
   // eslint-disable-next-line no-var
