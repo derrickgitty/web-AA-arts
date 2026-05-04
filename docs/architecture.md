@@ -84,7 +84,7 @@ sequenceDiagram
     Kid->>UI: open Shares panel, set recipient + expiry
     UI->>Server: POST /api/galleries/:id/shares
     Server->>DB: insert share with 32-char token
-    Server-->>UI: return /share/&lt;token&gt; URL
+    Server-->>UI: return share URL with token
   end
 
   Kid->>UI: visit /explore
@@ -149,7 +149,7 @@ sequenceDiagram
   participant DB as SQLite
   participant FS as public/uploads/
 
-  Recipient->>UI: visit /share/&lt;token&gt;[?g=N]
+  Recipient->>UI: visit /share/TOKEN (optionally ?g=N)
   UI->>Server: SSR share lookup
   Server->>DB: find share by token
   alt revoked or expired
@@ -162,7 +162,7 @@ sequenceDiagram
   end
   Recipient->>UI: click thumbnail
   UI->>UI: open lightbox (zoom/rotate/pan;<br/>NoDownloadGuard blocks right-click + drag)
-  UI->>FS: GET /uploads/&lt;file&gt; (full resolution)
+  UI->>FS: GET /uploads/FILE (full resolution)
 ```
 
 Notes on recipient experience:
