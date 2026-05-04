@@ -115,7 +115,7 @@ sequenceDiagram
 
   rect rgb(255, 245, 240)
     note over Admin,DB: Reset a kid's password
-    Admin->>UI: /admin/users -> Reset
+    Admin->>UI: open /admin/users, click Reset
     UI->>Server: POST /api/admin/users/:id/reset-password
     Server->>DB: hash new pw, set must_change_password=1<br/>insert admin_actions row
     Server-->>UI: show one-time password
@@ -143,26 +143,27 @@ Admin has no gallery of their own; admin pages are guarded by `app/admin/layout.
 ```mermaid
 sequenceDiagram
   autonumber
-  actor Recipient as Recipient (no login)
+  actor Recipient
   participant UI as Browser
   participant Server as Next.js server
   participant DB as SQLite
   participant FS as public/uploads/
 
-  Recipient->>UI: visit /share/TOKEN (optionally ?g=N)
+  Recipient->>UI: visit /share/TOKEN, optional g sub-gallery
   UI->>Server: SSR share lookup
   Server->>DB: find share by token
   alt revoked or expired
     Server-->>UI: 404
   else valid
-    Server->>Server: if ?g=N, verify isDescendant(N, share.gallery_id)
-    Server->>DB: insert share_views (IP, UA)
-    Server->>DB: list sub-galleries + artworks
-    Server-->>UI: render read-only gallery<br/>with owner-name watermark
+    Server->>Server: verify subtree descent when g param given
+    Server->>DB: insert share_views with IP and UA
+    Server->>DB: list sub-galleries and artworks
+    Server-->>UI: render read-only gallery with owner-name watermark
   end
   Recipient->>UI: click thumbnail
-  UI->>UI: open lightbox (zoom/rotate/pan;<br/>NoDownloadGuard blocks right-click + drag)
-  UI->>FS: GET /uploads/FILE (full resolution)
+  UI->>UI: open lightbox - zoom, rotate, pan
+  Note right of UI: NoDownloadGuard blocks right-click and drag
+  UI->>FS: GET full-resolution file
 ```
 
 Notes on recipient experience:
