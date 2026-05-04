@@ -13,11 +13,13 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   const row = db
     .prepare(
-      `SELECT a.id, a.file_url, a.thumb_url, g.user_id as owner_id
+      `SELECT a.id, a.file_url, a.thumb_url, a.bytes, g.user_id as owner_id
        FROM artworks a JOIN galleries g ON g.id = a.gallery_id
        WHERE a.id = ?`
     )
-    .get(artworkId) as (Pick<ArtworkRow, "id" | "file_url" | "thumb_url"> & Pick<GalleryRow, "user_id">) | undefined;
+    .get(artworkId) as
+    | (Pick<ArtworkRow, "id" | "file_url" | "thumb_url" | "bytes"> & Pick<GalleryRow, "user_id"> & { owner_id: number })
+    | undefined;
 
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (row.user_id !== user.id) return NextResponse.json({ error: "Not allowed" }, { status: 403 });
@@ -31,5 +33,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     }
   }
   db.prepare("DELETE FROM artworks WHERE id = ?").run(artworkId);
+  db.prepare("UPDATE users SET storage_bytes = MAX(0, storage_bytes - ?) WHERE id = ?").run(row.bytes, row.user_id);
   return NextResponse.json({ ok: true });
 }

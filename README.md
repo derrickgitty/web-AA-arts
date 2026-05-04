@@ -1,40 +1,62 @@
 # Alva & Alsa's Art Portal 🎨
 
-A cosy, pastel web portal where Alva and Alsa can upload their art and share it with friends and family via a secret link. Login-gated, admin-issued accounts.
+A cosy, pastel web portal where Alva and Alsa can upload their art and share it with friends and family via secret links — managed by an admin.
 
 ## Stack
 
 - **Next.js 15** (App Router) + **TypeScript** + **Tailwind**
-- **SQLite** (via `better-sqlite3`) — single `data.db` file, no external services
-- **Local file storage** in `public/uploads/` with `sharp` for thumbnails
-- **Session cookies** + **bcrypt** for password hashing
+- **SQLite** (`better-sqlite3`) — single `data.db` file, no external services
+- **Local file storage** in `public/uploads/` with **sharp** for image processing
+- **Sessions + bcrypt** for auth; **DOMPurify** for SVG sanitisation
 
 ## Setup
 
 ```bash
 npm install
-npm run seed     # creates Alva & Alsa accounts; PRINTS PASSWORDS ONCE
+npm run seed     # creates admin + Alva + Alsa; PRINTS PASSWORDS ONCE
 npm run dev      # http://localhost:3000
 ```
 
-The seed prints randomly-generated passwords (e.g. `kitty-rose-471`). **Copy them somewhere safe — they're hashed in the DB and you won't see them again.** To reset, delete `data.db` and re-run `npm run seed`.
+The seed prints randomly-generated passwords (e.g. `kitty-rose-471`). **Copy them somewhere safe — they're hashed in the DB and you won't see them again.** All accounts are flagged `must_change_password`, so each user picks their own password on first login.
 
-## How it works
+To reset everything: delete `data.db` and re-run `npm run seed`.
 
-- `/login` — username + password
-- `/` — redirects to your main gallery
-- `/gallery/:id` — view & manage a gallery (own = upload/delete/share, other's = read-only)
-- `/explore` — see the other kid's galleries
-- `/share/:token` — public, read-only view (no login required)
+## Roles & routes
 
-Each kid gets one top-level gallery on seed. Inside, they can create sub-galleries (e.g. "Watercolours", "Sketches") and upload artworks. Sub-galleries have their own share tokens.
+| Role | Lands on | Can do |
+| --- | --- | --- |
+| `admin` | `/admin` | Manage users, view login + audit history, revoke any share |
+| `kid` | `/gallery/:id` | Upload to own gallery, create sub-galleries, share, view others |
+| (none) | `/login` | Sign in |
+| (none) | `/share/:token` | View one shared gallery + descendants, read-only, no download |
 
-## Authorisation
+## Features
 
-Enforced server-side on every request:
-- Logged-in users can read all galleries but only mutate their own.
-- Share tokens give read-only access to one gallery + its sub-galleries (each sub has its own token).
-- Tokens are 32 random URL-safe chars (un-guessable). Re-rolling a token invalidates the old link.
+### For kids
+- One main gallery + unlimited sub-galleries
+- Upload **images** (JPG / PNG / WebP / GIF / HEIC / **SVG**) and **PDFs**
+- Drag-and-drop, file picker, **folder picker**
+- Personal avatar
+- Lightbox with **rotate, zoom (buttons + scroll wheel), drag-to-pan**
+- Multiple share links per gallery, each with a **recipient label** + **custom expiry** (or permanent)
+- Revoke own shares
+- 500MB storage quota with usage bar
+
+### For admin
+- Reset any user's password (generates new pw, ends their sessions, forces them to change on next login)
+- View login history (success + failed attempts, IP, user-agent)
+- See every share link, who it's for, expiry, view count, last viewed
+- Revoke any share
+- Audit log of all admin actions
+
+### Security & safety
+- Server-side authorisation on every mutation
+- **Rate limiting** — 10 failed logins per username per 10 min triggers a temporary lockout
+- **Forced password change** on first login (and after admin reset)
+- Session cookies are `httpOnly`, `sameSite=lax`, `secure` in production
+- **SVG sanitisation** strips `<script>`, `on*` handlers, etc.
+- **Download mitigations**: right-click disabled, drag-save blocked, watermark on shared/non-owner views, PDFs embedded with toolbar hidden
+  - ⚠️ Browsers can't truly prevent screenshots — these are layered soft mitigations
 
 ## Production
 

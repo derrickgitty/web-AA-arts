@@ -3,18 +3,25 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const ACCEPT = ".jpg,.jpeg,.png,.webp,.gif,.heic,.heif,.svg,.pdf,image/*,application/pdf";
+
+function isAcceptedFile(f: File) {
+  return f.type.startsWith("image/") || f.type === "application/pdf";
+}
+
 export default function UploadZone({ galleryId }: { galleryId: number }) {
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const folderRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
 
   async function uploadFiles(files: FileList | File[]) {
-    const arr = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    const arr = Array.from(files).filter(isAcceptedFile);
     if (arr.length === 0) {
-      setError("Please pick image files only.");
+      setError("Please pick image or PDF files only.");
       return;
     }
     setError("");
@@ -52,14 +59,30 @@ export default function UploadZone({ galleryId }: { galleryId: number }) {
     >
       <div className="text-4xl mb-2">✨</div>
       <p className="font-display text-lg text-lilac-500 mb-1">Add new art</p>
-      <p className="text-sm text-gray-500 mb-4">Drag pictures here, or pick from your computer</p>
-      <button onClick={() => inputRef.current?.click()} disabled={busy} className="btn-primary">
-        {busy ? `Uploading ${progress?.done ?? 0}/${progress?.total ?? 0}…` : "Pick pictures 🌷"}
-      </button>
+      <p className="text-sm text-gray-500 mb-4">Images (jpg, png, webp, svg) and PDFs · drag in, or pick from your computer</p>
+      <div className="flex gap-2 justify-center flex-wrap">
+        <button onClick={() => fileRef.current?.click()} disabled={busy} className="btn-primary">
+          {busy ? `Uploading ${progress?.done ?? 0}/${progress?.total ?? 0}…` : "Pick files 🌷"}
+        </button>
+        <button onClick={() => folderRef.current?.click()} disabled={busy} className="btn-secondary">
+          📁 Pick a folder
+        </button>
+      </div>
       <input
-        ref={inputRef}
+        ref={fileRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPT}
+        multiple
+        className="hidden"
+        onChange={(e) => e.target.files && uploadFiles(e.target.files)}
+      />
+      <input
+        ref={folderRef}
+        type="file"
+        // webkitdirectory enables folder selection in Chromium/WebKit; non-standard but widely supported
+        // @ts-expect-error react types don't include webkitdirectory
+        webkitdirectory="true"
+        directory="true"
         multiple
         className="hidden"
         onChange={(e) => e.target.files && uploadFiles(e.target.files)}

@@ -25,6 +25,7 @@ export default function LoginPage() {
       setError(data.error ?? "Login failed");
       return;
     }
+    // Server redirects to change-password if must_change_password=1; just route to /.
     router.push("/");
     router.refresh();
   }

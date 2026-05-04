@@ -9,6 +9,9 @@ export type CurrentUser = {
   id: number;
   username: string;
   displayName: string;
+  role: "kid" | "admin";
+  avatarUrl: string | null;
+  mustChangePassword: boolean;
 };
 
 export async function createSession(userId: number) {
@@ -23,6 +26,7 @@ export async function createSession(userId: number) {
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_TTL_SECONDS,
+    secure: process.env.NODE_ENV === "production",
   });
 }
 
@@ -41,17 +45,32 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!id) return null;
   const row = getDb()
     .prepare(
-      `SELECT u.id, u.username, u.display_name, s.expires_at
+      `SELECT u.id, u.username, u.display_name, u.role, u.avatar_url, u.must_change_password, s.expires_at
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.id = ?`
     )
     .get(id) as
-    | { id: number; username: string; display_name: string; expires_at: number }
+    | {
+        id: number;
+        username: string;
+        display_name: string;
+        role: "kid" | "admin";
+        avatar_url: string | null;
+        must_change_password: number;
+        expires_at: number;
+      }
     | undefined;
   if (!row) return null;
   if (row.expires_at < Math.floor(Date.now() / 1000)) {
     getDb().prepare("DELETE FROM sessions WHERE id = ?").run(id);
     return null;
   }
-  return { id: row.id, username: row.username, displayName: row.display_name };
+  return {
+    id: row.id,
+    username: row.username,
+    displayName: row.display_name,
+    role: row.role,
+    avatarUrl: row.avatar_url,
+    mustChangePassword: row.must_change_password === 1,
+  };
 }

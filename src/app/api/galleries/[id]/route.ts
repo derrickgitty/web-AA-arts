@@ -4,20 +4,19 @@ import path from "path";
 import { getCurrentUser } from "@/lib/auth";
 import { getDb, GalleryRow, ArtworkRow } from "@/lib/db";
 
-async function deleteArtworkFiles(artworks: ArtworkRow[]) {
+async function deleteArtworkFiles(artworks: Pick<ArtworkRow, "file_url" | "thumb_url">[]) {
   const root = process.cwd();
   for (const a of artworks) {
     for (const url of [a.file_url, a.thumb_url]) {
       try {
         await fs.unlink(path.join(root, "public", url));
       } catch {
-        /* file already gone — ignore */
+        /* ignore */
       }
     }
   }
 }
 
-// Rename a gallery the user owns.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -39,7 +38,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   return NextResponse.json({ ok: true });
 }
 
-// Delete a sub-gallery (and its artworks recursively). Top-level galleries cannot be deleted.
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -57,26 +55,24 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Cannot delete your main gallery" }, { status: 400 });
   }
 
-  // Collect every gallery in the subtree so we can clean up files first.
+  // Walk the subtree to gather artworks (so we can clean up files + storage usage).
   const ids: number[] = [galleryId];
   const queue = [galleryId];
   while (queue.length) {
     const current = queue.shift()!;
-    const children = db
-      .prepare("SELECT id FROM galleries WHERE parent_id = ?")
-      .all(current) as { id: number }[];
-    for (const c of children) {
-      ids.push(c.id);
-      queue.push(c.id);
-    }
+    const children = db.prepare("SELECT id FROM galleries WHERE parent_id = ?").all(current) as { id: number }[];
+    for (const c of children) { ids.push(c.id); queue.push(c.id); }
   }
   const placeholders = ids.map(() => "?").join(",");
   const artworks = db
-    .prepare(`SELECT * FROM artworks WHERE gallery_id IN (${placeholders})`)
-    .all(...ids) as ArtworkRow[];
-  await deleteArtworkFiles(artworks);
+    .prepare(`SELECT file_url, thumb_url, bytes FROM artworks WHERE gallery_id IN (${placeholders})`)
+    .all(...ids) as Pick<ArtworkRow, "file_url" | "thumb_url" | "bytes">[];
+  const totalBytes = artworks.reduce((sum, a) => sum + a.bytes, 0);
 
-  // ON DELETE CASCADE wipes the subtree and its artworks.
+  await deleteArtworkFiles(artworks);
   db.prepare("DELETE FROM galleries WHERE id = ?").run(galleryId);
+  if (totalBytes > 0) {
+    db.prepare("UPDATE users SET storage_bytes = MAX(0, storage_bytes - ?) WHERE id = ?").run(totalBytes, user.id);
+  }
   return NextResponse.json({ ok: true });
 }
