@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { nanoid } from "nanoid";
-import { getDb } from "./db";
+import { getDb, isTheme, type Theme } from "./db";
 
 const SESSION_COOKIE = "aa_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
@@ -12,6 +12,7 @@ export type CurrentUser = {
   role: "kid" | "admin";
   avatarUrl: string | null;
   mustChangePassword: boolean;
+  theme: Theme;
 };
 
 export async function createSession(userId: number) {
@@ -45,7 +46,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!id) return null;
   const row = getDb()
     .prepare(
-      `SELECT u.id, u.username, u.display_name, u.role, u.avatar_url, u.must_change_password, s.expires_at
+      `SELECT u.id, u.username, u.display_name, u.role, u.avatar_url, u.must_change_password, u.theme, s.expires_at
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.id = ?`
     )
@@ -57,6 +58,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
         role: "kid" | "admin";
         avatar_url: string | null;
         must_change_password: number;
+        theme: string;
         expires_at: number;
       }
     | undefined;
@@ -72,5 +74,6 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     role: row.role,
     avatarUrl: row.avatar_url,
     mustChangePassword: row.must_change_password === 1,
+    theme: isTheme(row.theme) ? row.theme : "pastel",
   };
 }

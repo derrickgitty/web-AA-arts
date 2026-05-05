@@ -24,6 +24,7 @@ function init(db: Database.Database) {
       avatar_url TEXT,
       must_change_password INTEGER NOT NULL DEFAULT 0,
       storage_bytes INTEGER NOT NULL DEFAULT 0,
+      theme TEXT NOT NULL DEFAULT 'pastel',
       created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
     );
     CREATE TABLE IF NOT EXISTS galleries (
@@ -90,6 +91,19 @@ function init(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_share_views_share ON share_views(share_id);
     CREATE INDEX IF NOT EXISTS idx_login_events_username ON login_events(username_attempted, created_at);
   `);
+
+  // Forward-compat: add columns introduced after the initial schema. ALTER TABLE
+  // throws if the column already exists, so swallow that specific error.
+  const userColumns = (db.prepare("PRAGMA table_info(users)").all() as { name: string }[]).map((r) => r.name);
+  if (!userColumns.includes("theme")) {
+    db.exec("ALTER TABLE users ADD COLUMN theme TEXT NOT NULL DEFAULT 'pastel'");
+  }
+}
+
+export const THEMES = ["pastel", "berry", "lavender", "forest"] as const;
+export type Theme = (typeof THEMES)[number];
+export function isTheme(value: unknown): value is Theme {
+  return typeof value === "string" && (THEMES as readonly string[]).includes(value);
 }
 
 export function getDb() {
@@ -110,6 +124,7 @@ export type UserRow = {
   avatar_url: string | null;
   must_change_password: number;
   storage_bytes: number;
+  theme: Theme;
   created_at: number;
 };
 

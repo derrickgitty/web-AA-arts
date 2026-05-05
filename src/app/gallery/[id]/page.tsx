@@ -71,7 +71,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ id: st
 
   return (
     <div>
-      <Header displayName={user.displayName} avatarUrl={user.avatarUrl} />
+      <Header displayName={user.displayName} avatarUrl={user.avatarUrl} theme={user.theme} />
       <main className="max-w-6xl mx-auto px-6 py-8">
         <nav className="text-sm text-gray-500 mb-2 flex items-center gap-2 flex-wrap">
           {!owned && (

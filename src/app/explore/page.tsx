@@ -32,7 +32,7 @@ export default async function ExplorePage() {
 
   return (
     <div>
-      <Header displayName={user.displayName} avatarUrl={user.avatarUrl} />
+      <Header displayName={user.displayName} avatarUrl={user.avatarUrl} theme={user.theme} />
       <main className="max-w-6xl mx-auto px-6 py-10">
         <h1 className="font-display text-4xl text-lilac-500 mb-1">Explore 👀</h1>
         <p className="text-gray-500 mb-8">See what your friend has been making ✨</p>
