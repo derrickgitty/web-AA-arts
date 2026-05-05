@@ -25,11 +25,53 @@ export default function ArtworkTile({ id, title, fileUrl, thumbUrl, kind, canDel
     | { kind: "pinch"; dist: number; baseZoom: number }
     | null
   >(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
 
   // Reset transform whenever the lightbox opens.
   useEffect(() => {
     if (open) { setZoom(1); setRotate(0); setPan({ x: 0, y: 0 }); }
+  }, [open]);
+
+  // Keyboard, focus trap, focus restore, and body-scroll lock for the lightbox.
+  useEffect(() => {
+    if (!open) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    closeBtnRef.current?.focus();
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setOpen(false);
+        return;
+      }
+      if (e.key === "Tab" && dialogRef.current) {
+        const nodes = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input, [tabindex]:not([tabindex="-1"])'
+        );
+        if (nodes.length === 0) return;
+        const first = nodes[0];
+        const last = nodes[nodes.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      previouslyFocused?.focus?.();
+    };
   }, [open]);
 
   async function del(e: React.MouseEvent) {
@@ -84,63 +126,73 @@ export default function ArtworkTile({ id, title, fileUrl, thumbUrl, kind, canDel
   }
   function onTouchEnd() { touchRef.current = null; }
 
+  const dialogTitle = title || (kind === "pdf" ? "Document" : "Artwork");
+
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        onContextMenu={(e) => e.preventDefault()}
-        className="card overflow-hidden wiggle text-left group relative select-none"
-      >
-        <div className="aspect-square">
-          <img
-            src={thumbUrl}
-            alt={title}
-            draggable={false}
-            className="w-full h-full object-cover pointer-events-none"
-            style={{ WebkitUserDrag: "none" } as React.CSSProperties}
-          />
-          {kind === "pdf" && (
-            <span className="absolute top-2 left-2 bg-lilac-100 text-lilac-500 text-xs font-bold px-2 py-1 rounded-full">PDF</span>
-          )}
-        </div>
-        {title && (
-          <div className="p-3">
-            <p className="font-semibold text-sm text-gray-700 truncate">{title}</p>
+      <div className="relative wiggle group">
+        <button
+          ref={triggerRef}
+          onClick={() => setOpen(true)}
+          onContextMenu={(e) => e.preventDefault()}
+          className="card overflow-hidden text-left select-none w-full"
+          aria-haspopup="dialog"
+          aria-label={`Open ${dialogTitle}`}
+        >
+          <div className="aspect-square">
+            <img
+              src={thumbUrl}
+              alt={title}
+              draggable={false}
+              className="w-full h-full object-cover pointer-events-none"
+              style={{ WebkitUserDrag: "none" } as React.CSSProperties}
+            />
+            {kind === "pdf" && (
+              <span className="absolute top-2 left-2 bg-lilac-100 text-lilac-500 text-xs font-bold px-2 py-1 rounded-full">PDF</span>
+            )}
           </div>
-        )}
+          {title && (
+            <div className="p-3">
+              <p className="font-semibold text-sm text-gray-700 truncate">{title}</p>
+            </div>
+          )}
+        </button>
         {canDelete && (
-          <span
+          <button
             onClick={del}
-            className="absolute top-2 right-2 bg-white/90 hover:bg-blush-100 text-blush-500 rounded-full w-8 h-8 flex items-center justify-center text-sm shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-            title="Delete"
-            role="button"
-            aria-disabled={deleting}
+            disabled={deleting}
+            className="absolute top-2 right-2 bg-white/90 hover:bg-blush-100 text-blush-500 rounded-full w-8 h-8 flex items-center justify-center text-sm shadow-sm opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity disabled:opacity-60"
+            aria-label={`Delete ${dialogTitle}`}
           >
             {deleting ? "…" : "🗑"}
-          </span>
+          </button>
         )}
-      </button>
+      </div>
 
       {open && (
         <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={dialogTitle}
           onClick={() => setOpen(false)}
           onContextMenu={(e) => e.preventDefault()}
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 select-none"
         >
           <div onClick={(e) => e.stopPropagation()} className="relative w-full h-full flex flex-col">
             <div className="flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-4 py-3 text-white flex-wrap">
-              <div className="font-display text-base sm:text-lg truncate min-w-0 flex-1">{title || (kind === "pdf" ? "Document" : "Artwork")}</div>
+              <div className="font-display text-base sm:text-lg truncate min-w-0 flex-1">{dialogTitle}</div>
               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 {kind === "image" && (
                   <>
-                    <button onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" title="Zoom out">−</button>
-                    <span className="text-xs sm:text-sm w-12 sm:w-14 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
-                    <button onClick={() => setZoom((z) => Math.min(5, z + 0.25))} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" title="Zoom in">+</button>
-                    <button onClick={() => setRotate((r) => (r + 90) % 360)} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" title="Rotate">↻</button>
-                    <button onClick={() => { setZoom(1); setRotate(0); setPan({ x: 0, y: 0 }); }} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-auto sm:px-3 sm:h-10 text-xs sm:text-sm" title="Reset">↺</button>
+                    <button onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" aria-label="Zoom out">−</button>
+                    <span className="text-xs sm:text-sm w-12 sm:w-14 text-center tabular-nums" aria-live="polite">{Math.round(zoom * 100)}%</span>
+                    <button onClick={() => setZoom((z) => Math.min(5, z + 0.25))} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" aria-label="Zoom in">+</button>
+                    <button onClick={() => setRotate((r) => (r + 90) % 360)} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" aria-label="Rotate 90 degrees">↻</button>
+                    <button onClick={() => { setZoom(1); setRotate(0); setPan({ x: 0, y: 0 }); }} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-auto sm:px-3 sm:h-10 text-xs sm:text-sm" aria-label="Reset zoom and rotation">↺</button>
                   </>
                 )}
-                <button onClick={() => setOpen(false)} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" title="Close">✕</button>
+                <button ref={closeBtnRef} onClick={() => setOpen(false)} className="bg-white/20 hover:bg-white/30 rounded-full w-9 h-9 sm:w-10 sm:h-10" aria-label="Close">✕</button>
               </div>
             </div>
 
