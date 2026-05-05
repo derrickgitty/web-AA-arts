@@ -2,7 +2,7 @@
 
 What every test in `tests/` covers, in the order it runs. Update when tests are added/changed.
 
-_Last refreshed: 2026-05-04_
+_Last refreshed: 2026-05-05 (no test additions in Phase 3 — coverage unchanged at 34 cases)_
 
 ## Test architecture
 

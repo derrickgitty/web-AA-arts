@@ -2,7 +2,7 @@
 
 All npm packages used by the art portal, with the version range declared in `package.json` and the exact version locked in `package-lock.json`. Update after any `npm install`/upgrade.
 
-_Last refreshed: 2026-05-04 (post Phase 2 — added vitest)_
+_Last refreshed: 2026-05-05 (post Phase 3 — TS 6, sharp 0.34, theme picker, a11y, error pages)_
 
 ## Runtime dependencies
 
@@ -14,19 +14,19 @@ _Last refreshed: 2026-05-04 (post Phase 2 — added vitest)_
 | `better-sqlite3` | `^11.5.0` | `11.10.0` | Synchronous SQLite client (native, needs node-gyp + libvips for sibling sharp) |
 | `bcryptjs` | `^2.4.3` | `2.4.3` | Password hashing (pure JS, no native compile) |
 | `isomorphic-dompurify` | `^2.36.0` | `2.36.0` | SVG sanitisation on upload |
-| `nanoid` | `^5.0.9` | `5.1.11` | Random IDs for sessions, files, share tokens |
-| `sharp` | `^0.33.5` | `0.33.5` | Image processing (thumbnails, EXIF rotation, SVG rasterisation). Requires `libvips` |
+| `nanoid` | `^5.1.11` | `5.1.11` | Random IDs for sessions, files, share tokens |
+| `sharp` | `^0.34.5` | `0.34.5` | Image processing (thumbnails, EXIF rotation, SVG rasterisation). Requires `libvips` |
 
 ## Dev dependencies
 
 | Package | Range | Locked | Purpose |
 |---|---|---|---|
-| `typescript` | `^5.7.2` | `5.9.3` | Type checker |
+| `typescript` | `^6.0.3` | `6.0.3` | Type checker. Stricter on side-effect imports — see `src/types.d.ts` for the `*.css` declaration |
 | `tsx` | `^4.19.2` | `4.21.0` | TS runner used by `npm run seed` |
 | `tailwindcss` | `^3.4.16` | `3.4.19` | Utility CSS |
 | `postcss` | `^8.4.49` | `8.5.13` | Tailwind toolchain |
 | `autoprefixer` | `^10.4.20` | `10.5.0` | Vendor-prefix CSS |
-| `@types/node` | `^22.10.0` | `22.19.17` | Node type defs |
+| `@types/node` | `^25.6.0` | `25.6.0` | Node type defs |
 | `@types/react` | `^19.0.0` | `19.2.14` | React type defs |
 | `@types/react-dom` | `^19.0.0` | `19.2.3` | React DOM type defs |
 | `@types/bcryptjs` | `^2.4.6` | `2.4.6` | bcryptjs type defs |

@@ -19,6 +19,8 @@ npm run dev      # http://localhost:3000
 
 The seed prints randomly-generated passwords (e.g. `kitty-rose-471`). **Copy them somewhere safe — they're hashed in the DB and you won't see them again.** All accounts are flagged `must_change_password`, so each user picks their own password on first login.
 
+Optional env vars are documented in `.env.example` (the defaults work for local dev — no copy required).
+
 To reset everything: delete `data.db` and re-run `npm run seed`.
 
 ## Roles & routes
@@ -41,6 +43,8 @@ To reset everything: delete `data.db` and re-run `npm run seed`.
 - Multiple share links per gallery, each with a **recipient label** + **custom expiry** (or permanent)
 - Revoke own shares
 - 500MB storage quota with usage bar
+- Per-kid theme picker (pastel / berry / lavender / forest)
+- Lightbox is keyboard-accessible (Esc closes, Tab is trapped, focus restores on close)
 
 ### For admin
 - Reset any user's password (generates new pw, ends their sessions, forces them to change on next login)
@@ -75,3 +79,14 @@ npm start
 ```
 
 Persistent disk required (SQLite + `public/uploads/`). Not suitable for ephemeral serverless hosts.
+
+Backups:
+
+```bash
+./scripts/backup.sh                 # writes ./backups/aa-arts-<stamp>.tar.gz
+./scripts/backup.sh /mnt/backups    # or pass a target dir
+```
+
+The script runs a SQLite WAL checkpoint before tarring `data.db` + `public/uploads/`. Wire it into cron or run by hand.
+
+`public/robots.txt` blocks all crawlers — share links are deliberately unguessable but should never be indexed.

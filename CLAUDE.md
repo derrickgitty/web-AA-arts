@@ -25,8 +25,11 @@ A pastel, age-appropriate web portal for two kids (Alva & Alsa, both 10–12) to
 ```
 src/
 ├── app/
-│   ├── layout.tsx              # Global shell + Quicksand/Fredoka fonts
+│   ├── layout.tsx              # Global shell + Quicksand/Fredoka fonts; reads user, sets data-theme
 │   ├── page.tsx                # / — auth-gated redirect (admin → /admin, kid → own gallery)
+│   ├── not-found.tsx           # Pastel 404
+│   ├── error.tsx               # Pastel runtime-error boundary (client component)
+│   ├── global-error.tsx        # Fallback when the root layout itself crashes
 │   ├── login/                  # Login form + force-pw-change Suspense split
 │   ├── change-password/        # /change-password (forced on first login or admin reset)
 │   ├── gallery/[id]/           # Owned (edit) or read-only depending on owner
@@ -40,7 +43,7 @@ src/
 │   │   └── audit/              # Admin action log
 │   └── api/                    # All Route Handlers (Next.js App Router)
 │       ├── login/  logout/     # Sessions
-│       ├── me/password/  me/avatar/  # Self-service
+│       ├── me/password/  me/avatar/  me/theme/  # Self-service
 │       ├── galleries/[id]/{shares,route}.ts  # Sub-galleries + share collection
 │       ├── shares/[id]/        # Revoke (kid or admin)
 │       ├── upload/             # Image+PDF+SVG upload, sharp + DOMPurify
@@ -52,7 +55,10 @@ src/
     ├── auth.ts                 # Session create/destroy, getCurrentUser
     └── passwords.ts            # Friendly password generator + share token alphabet
 scripts/seed.ts                 # One-time seed: creates admin + alva + alsa
+scripts/backup.sh               # tar data.db (+ WAL) + uploads to ./backups/<dated>.tar.gz
 public/uploads/                 # Gitignored; .gitkeep only
+public/robots.txt               # Disallow: / — share links should not be indexed
+.env.example                    # Documents DATA_DB_PATH and NODE_ENV (both optional)
 data.db                         # Gitignored; SQLite file
 ```
 
@@ -60,7 +66,7 @@ data.db                         # Gitignored; SQLite file
 
 | Table | Purpose |
 |---|---|
-| `users` | id, username, password_hash, display_name, role (`kid`/`admin`), avatar_url, must_change_password, storage_bytes |
+| `users` | id, username, password_hash, display_name, role (`kid`/`admin`), avatar_url, must_change_password, storage_bytes, theme |
 | `galleries` | id, user_id, name, parent_id (NULL = top-level) |
 | `artworks` | id, gallery_id, title, kind (`image`/`pdf`), file_url, thumb_url, bytes |
 | `sessions` | id, user_id, expires_at |
@@ -88,6 +94,8 @@ npm install
 npm run seed      # creates admin/alva/alsa; PRINTS PASSWORDS ONCE — capture stdout
 npm run dev       # http://localhost:3000
 npm run build && npm start   # production
+npm test          # vitest — unit + integration (34 cases)
+./scripts/backup.sh          # tar data.db + uploads → ./backups/<stamp>.tar.gz
 ```
 
 To wipe state: `rm data.db data.db-wal data.db-shm public/uploads/*` then re-seed.
@@ -100,6 +108,8 @@ To wipe state: `rm data.db data.db-wal data.db-shm public/uploads/*` then re-see
 - Page components that use `useSearchParams()` must wrap the client part in `<Suspense>` (see `change-password/`).
 - API routes return `NextResponse.json(...)` with 4xx/5xx codes; client UI surfaces `data.error` to the user.
 - Don't put event handlers (`onContextMenu={...}`) on server-component JSX — use the `<NoDownloadGuard />` client wrapper instead.
+- Theme is per-user, stored on `users.theme`, applied via `data-theme` on `<html>` from `app/layout.tsx`. Whitelist lives in `src/lib/db.ts` (`THEMES`, `isTheme`).
+- Schema migrations: `src/lib/db.ts` runs `CREATE TABLE IF NOT EXISTS` on every boot, plus an idempotent `ALTER TABLE` block guarded by `PRAGMA table_info` for any column added after the initial schema.
 
 ## Production gotchas
 

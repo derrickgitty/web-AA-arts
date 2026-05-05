@@ -2,31 +2,32 @@
 
 Refresh on commits that change source files.
 
-_Last refreshed: 2026-05-04 (post Phase 2 — tests added)_
+_Last refreshed: 2026-05-05 (post Phase 3 — theme picker, a11y, error pages, TS 6)_
 
 ## By directory
 
 | Path | Lines | Files | What |
 |---|---|---|---|
-| `src/app/api/**` | 561 | 11 | Route handlers (login, upload, shares, admin, etc.) |
-| `src/app/**` (incl. api above) | 1,559 | 25 | All App Router pages + APIs |
-| `src/components/**` | 728 | 13 | Client + server React components |
-| `src/lib/**` | 246 | 4 | `db.ts`, `auth.ts`, `passwords.ts`, `svg.ts` |
-| `scripts/**` | 60 | 1 | `seed.ts` |
+| `src/app/api/**` | 567 | 12 | Route handlers (login, upload, shares, admin, theme, etc.) |
+| `src/app/**` (incl. api above) | 1,683 | 29 | All App Router pages + APIs (includes `not-found.tsx`, `error.tsx`, `global-error.tsx`) |
+| `src/components/**` | 862 | 13 | Client + server React components |
+| `src/lib/**` | 269 | 4 | `db.ts`, `auth.ts`, `passwords.ts`, `svg.ts` |
+| `scripts/**` | 87 | 2 | `seed.ts`, `backup.sh` |
 | `tests/unit/**` | 80 | 2 | passwords, svg unit tests |
 | `tests/integration/**` | 301 | 4 | auth, upload, shares, admin integration tests |
 | `tests/helpers/**` | 209 | 2 | server spawn + cookie-jar fetch client |
-| **Total source + tests** | **3,184** | **51** | |
+| **Total source + tests** | **3,465** | **53** | |
 
 ## By language
 
 | Language | Lines | Files |
 |---|---|---|
-| TypeScript (.ts) | 1,446 | 21 |
-| TSX (.tsx) | 1,726 | 27 |
-| CSS | 41 | 1 |
-| Markdown (root + docs) | ~600 | 6 (CLAUDE.md, todo.md, COMPONENTS.md, LOC.md, README.md, docs/test-cases.md, docs/test-log.md) |
-| Config (package.json, tsconfig, next, tailwind, postcss, vitest) | ~110 | 6 |
+| TypeScript (.ts) | ~1,580 | 21 (incl. `src/types.d.ts`) |
+| TSX (.tsx) | 1,978 | 30 |
+| CSS | 56 | 1 |
+| Shell | 27 | 1 (`scripts/backup.sh`) |
+| Markdown (root + docs) | ~700 | 7 (CLAUDE.md, todo.md, COMPONENTS.md, LOC.md, README.md, docs/architecture.md, docs/test-cases.md, docs/test-log.md) |
+| Config (package.json, tsconfig, next, tailwind, postcss, vitest, .env.example) | ~120 | 7 |
 
 ## Notes
 
